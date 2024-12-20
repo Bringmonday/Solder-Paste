@@ -84,13 +84,12 @@ Proses Produksi
                                     </tbody>
                                     </table>
                                 </div>
-
                         </div>
                     </div>
                 </div>
 
                 <div class="col-md-4">
-                    <div class="card ">
+                    <div class="card card-new">
                         <div class="card-header">
                             <h3 class="card-title">Tabel Solder Paste Open</h3>
                         </div>
@@ -130,6 +129,43 @@ Proses Produksi
                             <p class="card-description">
                                 <span class="red-color">Merah</span> <b>menunjukkan solder paste sudah dibuka melebihi 8 jam</b>
                             </p>
+                        </div>
+                    </div>
+                    <div class="card mt-3"?>
+                        <div class="card-header">
+                            <h3 class="card-title">Tabel Solder Paste Expired</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive-exp table-fixed-header">
+                                <table id="solder-paste-table-expired" class="table table-bordered table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Lot Number</th>
+                                            <th>Handover</th>
+                                            <th>Open</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php if (!empty($today_entries_exp)): ?>
+                                            <?php foreach ($today_entries_exp as $entry): ?>
+                                                <tr data-datetime="<?= esc($entry['openusing'] ?? $entry['handover']); ?>">    
+                                                    <td><?= esc($entry['id']); ?></td>
+                                                    <td><?= esc($entry['lot_number']); ?></td>
+                                                    <td><?= esc($entry['handover']); ?></td>
+                                                    <td><?= esc($entry['openusing']); ?></td>
+                                                    <td class="status"></td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        <?php else: ?>
+                                            <tr>
+                                                <td colspan="5">No entries for today.</td>
+                                            </tr>
+                                        <?php endif; ?>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -174,10 +210,10 @@ Proses Produksi
                 let rowClass = 'default-color'; 
                 let statusText = '';
                 
-                if (timeDiff > 480) { // aktual waktu 8 jam = 480 menit
+                if (timeDiff > 2) { // aktual waktu 8 jam = 480 menit
                     rowClass = 'table-danger';
                     statusText = 'Melebihi 8 jam';
-                } else if (timeDiff > 360) { // aktual waktu 6 jam = 360 menit
+                } else if (timeDiff > 1) { // aktual waktu 6 jam = 360 menit
                     rowClass = 'table-warning';
                     statusText = 'Melebihi 6 jam';
                 } else {
@@ -194,6 +230,40 @@ Proses Produksi
     });
 </script>
 
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        function updateRowColors() {
+            const rows = document.querySelectorAll('#solder-paste-table-expired tbody tr');
+            const currentTime = new Date();
+
+            rows.forEach(row => {
+                const dateTimeAttr = row.getAttribute('data-datetime');
+                if (!dateTimeAttr) return;
+
+                const datetime = new Date(dateTimeAttr);
+                const timeDiff = (currentTime - datetime) / 60000; 
+                let rowClass = 'default-color'; 
+                let statusText = '';
+
+                if (timeDiff > 3) { // aktual waktu 2880 menit = 48 jam (2 hari)
+                    rowClass = 'table-danger';
+                    statusText = 'Expired';
+                } else if (timeDiff > 2) { // aktual waktu 8 jam (480 menit)
+                    rowClass = 'table-warning';
+                    statusText = 'Melebihi 8 jam';
+                } else {
+                    statusText = 'Normal';
+                }
+
+                row.className = rowClass;
+                row.querySelector('.status').textContent = statusText;
+            });
+        }
+
+        updateRowColors();
+        setInterval(updateRowColors, 30000);
+    });
+</script>
 
 <script>
     function saveTimestamp(column) {
@@ -234,7 +304,12 @@ Proses Produksi
             }
         });
     } else {
-        alert('Please enter the search key first.');
+        Swal.fire({
+                title: 'Input Tidak Lengkap',
+                text: 'Tolong input Lot Number dan ID terlebih dahulu.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
     }
 }
 
@@ -391,7 +466,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     constraints: {
                         width: 800,
                         height: 600,
-                        facingMode: 'environment' 
+                        facingMode: 'environment' // atau 'user' kamera depan
                     }
                 },
                 locator: {
@@ -399,7 +474,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     halfSample: true
                 },
                 decoder: {
-                    readers: ['ean_reader', 'ean_8_reader']
+                    readers: ['ean_reader', 'ean_8_reader'] // barcode types to scan
                 }
             }, function(err) {
                 if (err) {
@@ -423,6 +498,10 @@ document.addEventListener("DOMContentLoaded", function() {
 </script>
 
 <style>
+    .card-new {
+        max-height: 420px;
+    }
+
     #search_results {
         margin-top: 10px;
         max-height: 150px;
@@ -489,11 +568,23 @@ document.addEventListener("DOMContentLoaded", function() {
         font-size: 75%;
         overflow-y: hidden;
         overflow-x: hidden;
-        max-height: 362px;
+        max-height: 240px;
         margin-bottom: 10px;
     }
 
     .table-responsive-open:hover {
+        overflow-y: auto;
+    }
+
+    .table-responsive-exp {
+        font-size: 60%;
+        overflow-y: hidden;
+        overflow-x: hidden;
+        max-height: 240px;
+        margin-bottom: 10px;
+    }
+
+    .table-responsive-exp:hover {
         overflow-y: auto;
     }
 

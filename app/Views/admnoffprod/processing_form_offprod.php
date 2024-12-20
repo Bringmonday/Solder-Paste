@@ -142,6 +142,43 @@ Proses Office Produksi
                             </p>
                         </div>
                     </div>
+                    <div class="card mt-3"?>
+                        <div class="card-header">
+                            <h3 class="card-title">Tabel Solder Paste Expired</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive-exp table-fixed-header">
+                                <table id="solder-paste-table-expired" class="table table-bordered table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Lot Number</th>
+                                            <th>Handover</th>
+                                            <th>Open</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php if (!empty($today_entries_exp)): ?>
+                                            <?php foreach ($today_entries_exp as $entry): ?>
+                                                <tr data-datetime="<?= esc($entry['openusing'] ?? $entry['handover']); ?>">    
+                                                    <td><?= esc($entry['id']); ?></td>
+                                                    <td><?= esc($entry['lot_number']); ?></td>
+                                                    <td><?= esc($entry['handover']); ?></td>
+                                                    <td><?= esc($entry['openusing']); ?></td>
+                                                    <td class="status"></td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        <?php else: ?>
+                                            <tr>
+                                                <td colspan="5">No entries for today.</td>
+                                            </tr>
+                                        <?php endif; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="col-md-12 col-lg-6 mb-4">
@@ -166,9 +203,7 @@ Proses Office Produksi
                         </div>
                     </div>
                 </div>
-                <div>
-                    <button type="button" class="btn btn-scr" style="margin: 0 0 20px 10px" onclick="window.location.href='<?= base_url('admnoffprod/xacti_aji_offprod'); ?>'">Send To External</button>
-                </div>
+
             </div>
         </div>
     </section>
@@ -185,6 +220,41 @@ Proses Office Produksi
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         function updateRowColors() {
+            const rows = document.querySelectorAll('#solder-paste-table-expired tbody tr');
+            const currentTime = new Date();
+
+            rows.forEach(row => {
+                const dateTimeAttr = row.getAttribute('data-datetime');
+                if (!dateTimeAttr) return;
+
+                const datetime = new Date(dateTimeAttr);
+                const timeDiff = (currentTime - datetime) / 60000; 
+                let rowClass = 'default-color'; 
+                let statusText = '';
+
+                if (timeDiff > 3) { // aktual waktu 2880 menit = 48 jam (2 hari)
+                    rowClass = 'table-danger';
+                    statusText = 'Expired';
+                } else if (timeDiff > 2) { // aktual waktu 8 jam (480 menit)
+                    rowClass = 'table-warning';
+                    statusText = 'Melebihi 8 jam';
+                } else {
+                    statusText = 'Normal';
+                }
+
+                row.className = rowClass;
+                row.querySelector('.status').textContent = statusText;
+            });
+        }
+
+        updateRowColors();
+        setInterval(updateRowColors, 30000);
+    });
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        function updateRowColors() {
             const rows = document.querySelectorAll('#solder-paste-table-open tbody tr');
             const currentTime = new Date();
 
@@ -195,10 +265,10 @@ Proses Office Produksi
                 let rowClass = 'default-color'; 
                 let statusText = '';
                 
-                if (timeDiff > 480) { // aktual waktu 8 jam = 480 menit
+                if (timeDiff > 2) { // aktual waktu 8 jam = 480 menit
                     rowClass = 'table-danger';
                     statusText = 'Melebihi 8 jam';
-                } else if (timeDiff > 360) { // aktual waktu 6 jam = 360 menit
+                } else if (timeDiff > 1) { // aktual waktu 6 jam = 360 menit
                     rowClass = 'table-warning';
                     statusText = 'Melebihi 6 jam';
                 } else {
@@ -217,11 +287,60 @@ Proses Office Produksi
 
 <script>
     function saveTimestamp(column) {
-    var SearchKey = document.getElementById('search_key').value;
-    if (SearchKey) {
+        var SearchKey = document.getElementById('search_key').value;
+        if (SearchKey) {
+            
+            $.ajax({
+                url: '<?= base_url('user/get_last_timestamp'); ?>',
+                type: 'POST',
+                dataType: 'json',
+                data: { search_key: SearchKey },
+                success: function(response) {
+                    var lastTimestamp = new Date(response.timestamp);
+                    var currentTime = new Date();
+                    var diffInMinutes = (currentTime - lastTimestamp) / 60000;
+                    
+                    if (column === 'mixing' && diffInMinutes <= 2) {
+                        Swal.fire({
+                            title: 'Apakah anda yakin?',
+                            text: "Solder paste belum melewati batas minimum 2 jam. Apakah anda yakin ingin melanjutkan proses?",
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#3085d6',
+                            cancelButtonColor: '#d33',
+                            confirmButtonText: 'Yes, lanjutkan'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                submitTimestampForm(SearchKey, column);
+                            }
+                        });
+                    } else {
+                        submitTimestampForm(SearchKey, column);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Gagal mengambil data timestamp.',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            });
+        } else {
+            Swal.fire({
+                title: 'Input Tidak Lengkap',
+                text: 'Tolong input Lot Number dan ID terlebih dahulu.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        }
+    }
+
+    function submitTimestampForm(SearchKey, column) {
         var form = document.createElement('form');
         form.method = 'POST';
-        form.action = '<?= base_url('user/save_timeoffprod_search_key'); ?>'; 
+        form.action = '<?= base_url('user/save_timeoffprod_search_key'); ?>';
 
         var SearchKeyField = document.createElement('input');
         SearchKeyField.type = 'hidden';
@@ -242,39 +361,7 @@ Proses Office Produksi
         form.appendChild(timestampField);
 
         document.body.appendChild(form);
-
-        console.log('Data yang dikirim:', SearchKey, column, timestampField.value);
-
         form.submit();
-
-        var buttons = document.querySelectorAll('button');
-        buttons.forEach(function(button) {
-            if (button.textContent.trim().toLowerCase() === column.toLowerCase()) {
-                button.disabled = true;
-            }
-        });
-    } else {
-        alert('Please enter the search key first.');
-    }
-}
-
-
-
-    function checkTimestamps(SearchKey) {
-        if (SearchKey) {
-            $.ajax({
-                url: '<?= base_url('user/check_timestamps'); ?>', 
-                type: 'POST',
-                dataType: 'json',
-                contentType: 'application/json',
-                data: JSON.stringify({ search_key: SearchKey }),
-                success: function(data) {
-                },
-                error: function(xhr, status, error) {
-                    alert('Terjadi kesalahan saat memeriksa timestamp.'); 
-                }
-            });
-        }
     }
 
     function resetFields() {
@@ -522,7 +609,7 @@ Proses Office Produksi
         font-size: 75%;
         overflow-y: hidden;
         overflow-x: hidden;
-        max-height: 330px;
+        max-height: 240px;
         margin-bottom: 10px;
     }
 
@@ -530,11 +617,23 @@ Proses Office Produksi
         overflow-y: auto;
     }
 
+    .table-responsive-exp {
+        font-size: 60%;
+        overflow-y: hidden;
+        overflow-x: hidden;
+        max-height: 240px;
+        margin-bottom: 10px;
+    }
+
+    .table-responsive-exp:hover {
+        overflow-y: auto;
+    }
+
     .table-responsive {
     font-size: 70%;
     overflow-y: hidden;
     overflow-x: hidden;
-    max-height: 202px;
+    max-height: 423px;
     display: block;
     }
 
@@ -566,7 +665,6 @@ Proses Office Produksi
         background-color: #f5911f;
         color: #000;
         text-align: center;
-        z-index: 99;
     }
 
     .card-header {
@@ -584,12 +682,6 @@ Proses Office Produksi
 
     .content {
         padding-top: 8px;
-    }
-
-    .btn-scr { 
-        background-color: #f5911f;
-        color: #fff;
-        padding: 5px;
     }
 
     .btn-rs { 

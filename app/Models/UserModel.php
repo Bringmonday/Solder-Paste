@@ -140,7 +140,8 @@ class UserModel extends Model
 
     public function insertData($data)
     {
-        return $this->insert($data);
+        $data['search_key'] = $data['lot_number'] . $data['id'];  
+        $this->db->table('solder_paste_test')->insert($data); 
     }
 
     public function updateSearchKey($lot_number, $id)
@@ -450,7 +451,7 @@ class UserModel extends Model
                     ->findAll();
     }
     
-    public function get_today_return($limit = 5, )
+    public function get_today_return($limit = 5)
     {
         $startOfDay = date('Y-m-d') . ' 07:00:00';
         $endOfDay = date('Y-m-d') . ' 19:00:00';
@@ -497,7 +498,7 @@ class UserModel extends Model
             WHERE conditioning IS NOT NULL
             AND CAST(conditioning AS DATE) = '$currentDate'  -- Membatasi hanya pada tanggal saat ini
             AND CONVERT(TIME, conditioning) BETWEEN '07:00:00' AND '19:00:00'
-            AND DATEDIFF(MINUTE, conditioning, GETDATE()) >= 120 -- Aktual 120 menit = 2 jam
+            AND DATEDIFF(MINUTE, conditioning, GETDATE()) >= 2 -- Aktual 120 menit = 2 jam
             AND mixing IS NULL
             AND handover IS NULL
             AND lot_number NOT LIKE 'RE%'
@@ -517,7 +518,7 @@ class UserModel extends Model
             WHERE openusing IS NOT NULL
             AND CAST(openusing AS DATE) = '$currentDate'  -- Membatasi hanya pada tanggal saat ini
             AND CONVERT(TIME, openusing) BETWEEN '07:00:00' AND '19:00:00'
-            AND DATEDIFF(MINUTE, openusing, GETDATE()) >= 480 -- aktual 480 menit = 8 jam
+            AND DATEDIFF(MINUTE, openusing, GETDATE()) >= 2 -- aktual 480 menit = 8 jam
             AND returnsp IS NULL
             AND scrap IS NULL
             AND lot_number NOT LIKE 'RE%'
@@ -763,6 +764,45 @@ class UserModel extends Model
             return null;
         }
     }
+
+    public function get_today_solder_paste_exp($limit = 5, $order = 'DESC')
+    {
+        date_default_timezone_set('Asia/Jakarta');
+        $today_start = date('Y-m-d 00:00:00');
+        $today_end = date('Y-m-d 23:59:59');
+        $two_days_ago = date('Y-m-d H:i:s', strtotime('-2 days'));
+    
+        $query = $this->db->table('solder_paste_test')
+                        ->groupStart()
+                            ->groupStart()
+                                ->where('handover >=', $two_days_ago)
+                                ->where('handover <=', $today_end)
+                                ->where('handover IS NOT NULL')
+                                ->orWhere('lot_number LIKE','%OLD%')
+                                
+                            ->groupEnd()
+                            ->orGroupStart()
+                                ->where('openusing >=', $two_days_ago)
+                                ->where('openusing <=', $today_end)
+                                ->where('openusing IS NOT NULL')
+                                ->orWhere('lot_number LIKE','%OLD%')
+                            ->groupEnd()
+                        ->groupEnd()
+                        ->where('returnsp IS NULL') 
+                        ->where('scrap IS NULL')
+                        ->orderBy('handover', $order)
+                        ->limit($limit)
+                        ->get();
+    
+        return $query->getResultArray();
+    }    
+
+    public function dataExists($lot_number, $id)
+    {
+        return $this->where('lot_number', $lot_number)
+                    ->where('id', $id)
+                    ->countAllResults() > 0;
+    }  
 
 
 }

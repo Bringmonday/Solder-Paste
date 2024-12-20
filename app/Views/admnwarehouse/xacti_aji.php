@@ -58,7 +58,6 @@ Solder Paste External
                                         <tr>
                                             <th>ID</th>
                                             <th>Lot Number</th>
-                                            <th>Incoming</th>
                                             <th>Scrap</th>
                                         </tr>
                                     </thead>
@@ -68,7 +67,6 @@ Solder Paste External
                                                 <tr>
                                                     <td><?= $entry['id']; ?></td>
                                                     <td><?= $entry['lot_number']; ?></td>
-                                                    <td><?= $entry['incoming']; ?></td>
                                                     <td><?= $entry['scrap']; ?></td>
                                                 </tr>
                                             <?php endforeach; ?>
@@ -135,7 +133,12 @@ Solder Paste External
             }
         });
     } else {
-        alert('Please enter the search key first.');
+        Swal.fire({
+            title: 'Data Belum diisi',
+            text: 'Tolong input data terlebih dahulu.',
+            icon: 'error',
+            confirmButtonText: 'OK'
+        });
     }
 }
 

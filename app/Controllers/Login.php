@@ -40,7 +40,7 @@ class Login extends Controller
                     case 1:
                         return redirect()->to('admnwarehouse/dashboardwrhs');
                     case 2:
-                        return redirect()->to('admnproduksi/dashboardprod');
+                        return redirect()->to('admnproduksi/processing_form_produksi');
                     case 3:
                         return redirect()->to('admnoffprod/dashboardoffprod');
                     default:

@@ -41,7 +41,7 @@ Incoming
                         </div>
                         <div class="card-body">
                             <h4>Temporary Data</h4>
-                            <button onclick="resetTempEntries()" class="btn btn-secondary mb-2">Reset Table</button>
+                            <button onclick="resetTempEntries()" class="btn btn-outline-danger mb-2">Reset Table</button>
                             <div class="table-container">
                                 <table class="table table-bordered">
                                     <thead class="thead-rs">
@@ -49,10 +49,11 @@ Incoming
                                             <th>ID</th>
                                             <th>Lot Number</th>
                                             <th>Incoming</th>
+                                            <th>Action</th>
                                         </tr>
                                     </thead>
                                     <tbody id="temp-data">
-                                        <!-- Temporary data will be displayed here -->
+                                        
                                     </tbody>
                                 </table>
                             </div>
@@ -99,41 +100,82 @@ Incoming
 
     function addTempEntry() {
         if (tempData.length >= 20) {
-            // Show SweetAlert notification
             Swal.fire({
                 title: 'Limit Add Data',
                 text: 'Hanya dapat add data sebanyak 20 data.',
                 icon: 'warning',
                 confirmButtonText: 'OK'
             });
-            return;  // Stop further execution if limit is reached
+            return;  
         }
 
         var lot_number = document.getElementById('lot_number').value.trim();
         var id = document.getElementById('id').value.trim();
 
         if (lot_number !== '' && id !== '') {
-            // Add entry directly without checking for duplicates
-            var entry = {
-                lot_number: lot_number,
-                id: id,
-                incoming: getCurrentDateTime()
-            };
+            var search_key = lot_number + id;  
 
-            tempData.push(entry);
-            renderTempData();
-            saveTempDataToLocalStorage();
-            resetFields();
-            document.getElementById('lot_number').focus();
+            fetch('<?= base_url('user/check_data_exists'); ?>', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '<?= csrf_hash(); ?>'
+                },
+                body: JSON.stringify({ lot_number: lot_number, id: id })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.exists) {
+                    Swal.fire({
+                        title: 'Data sudah ada',
+                        text: 'Lot Number dan ID sudah ada di database.',
+                        icon: 'warning',
+                        confirmButtonText: 'OK'
+                    });
+                } else {
+                    var entry = {
+                        lot_number: lot_number,
+                        id: id,
+                        search_key: search_key,  
+                        incoming: getCurrentDateTime()
+                    };
+
+                    tempData.push(entry);
+                    renderTempData();
+                    saveTempDataToLocalStorage();
+                    resetFields();
+                    document.getElementById('lot_number').focus();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Gagal memeriksa data di database.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            });
         } else {
-            alert('Tolong input Lot Number atau ID terlebih dahulu.');
+            Swal.fire({
+                title: 'Input Tidak Lengkap',
+                text: 'Tolong input Lot Number dan ID terlebih dahulu.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
         }
     }
 
     function submitData() {
         if (tempData.length === 0) {
-            alert('Tolong input Lot Number atau ID terlebih dahulu.');
-            document.getElementById('lot_number').focus();
+            Swal.fire({
+                title: 'Tidak Ada Data',
+                text: 'Tolong input Lot Number atau ID terlebih dahulu.',
+                icon: 'warning',
+                confirmButtonText: 'OK'
+            }).then(() => {
+                document.getElementById('lot_number').focus();
+            });
             return;
         }
 
@@ -146,30 +188,37 @@ Incoming
             },
             body: JSON.stringify({ tempData: tempData })
         })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
-            Swal.fire({
-                title: 'Success',
-                text: 'Data berhasil disimpan!',
-                icon: 'success',
-                confirmButtonText: 'OK'
-            });
+            if (data.existingData && data.existingData.length > 0) {
+                let existingMessage = 'Lot Number dan ID berikut sudah ada dalam database \n';
+                data.existingData.forEach(item => {
+                    existingMessage += `. Data : ${item.lot_number}-${item.id}\n`;
+                });
+                Swal.fire({
+                    title: 'Data sudah ada',
+                    text: existingMessage,
+                    icon: 'warning',
+                    confirmButtonText: 'OK'
+                });
+            } else {
+                Swal.fire({
+                    title: 'Success',
+                    text: 'Data berhasil disimpan!',
+                    icon: 'success',
+                    confirmButtonText: 'OK'
+                });
 
-            tempData = [];
-            saveTempDataToLocalStorage();
-            renderTempData();
-            document.getElementById('lot_number').focus();
+                tempData = [];
+                saveTempDataToLocalStorage();
+                renderTempData();
+                document.getElementById('lot_number').focus();
+            }
         })
         .catch(error => {
             console.error('Error:', error);
             alert('Failed to save data.');
         });
-
     }
 
     function saveTempDataToLocalStorage() {
@@ -192,18 +241,38 @@ Incoming
         var tempHtml = '';
         var today = new Date().toISOString().slice(0, 10);
 
-        tempData.forEach(function (entry) {
+        tempData.forEach(function (entry, index) {
             if (entry.incoming.slice(0, 10) === today) {
                 tempHtml += '<tr>';
                 tempHtml += '<td>' + entry.id + '</td>';
                 tempHtml += '<td>' + entry.lot_number + '</td>';
                 tempHtml += '<td>' + entry.incoming + '</td>';
+                tempHtml += '<td><button onclick="deleteTempEntry(' + index + ')" class="btn btn-danger btn-sm">Delete</button></td>';
                 tempHtml += '</tr>';
             }
         });
 
         document.getElementById('temp-data').innerHTML = tempHtml;
     }
+
+    function deleteTempEntry(index) {
+        Swal.fire({
+            title: 'Apakah Anda yakin?',
+            text: 'Data ini akan dihapus dari tabel sementara!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, hapus!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                tempData.splice(index, 1);
+                saveTempDataToLocalStorage();
+                renderTempData();
+                Swal.fire('Terhapus!', 'Data berhasil dihapus.', 'success');
+            }
+        });
+    }
+
 
     function getCurrentDateTime() {
         var now = new Date();
@@ -217,10 +286,26 @@ Incoming
     }
 
     function resetTempEntries() {
-        tempData = [];
-        localStorage.removeItem('tempData');
-        renderTempData();
-        document.getElementById('lot_number').focus();
+        Swal.fire({
+            title: 'Apakah Anda yakin?',
+            text: 'Seluruh data sementara akan dihapus!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, reset!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                tempData = [];
+                localStorage.removeItem('tempData');
+                renderTempData();
+                document.getElementById('lot_number').focus();
+                Swal.fire(
+                    'Berhasil!',
+                    'Tabel telah direset.',
+                    'success'
+                );
+            }
+        });
     }
 </script>
 

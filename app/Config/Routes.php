@@ -14,6 +14,7 @@ $routes->post('loginMe', 'Login::loginMe');
 $routes->get('register', 'Register::index');
 $routes->post('registerMe', 'Register::registerMe');
 $routes->post('user/save_temp_data', 'User::save_temp_data');
+$routes->post('user/save_temp_dataoff', 'User::save_temp_dataoff');
 $routes->post('user/save_timewarehouse', 'User::save_timewarehouse');
 $routes->post('user/save_timewarehouse_search_key', 'User::save_timewarehouse_search_key');
 $routes->post('user/save_timeproduksi_search_key', 'User::save_timeproduksi_search_key');
@@ -21,7 +22,6 @@ $routes->post('user/save_timeproduksi_lot_number', 'User::save_timeproduksi_lot_
 $routes->post('user/save_timeoffprod_search_key', 'User::save_timeoffprod_search_key');
 $routes->post('user/save_timewarehouse_scrap_to_return', 'User::save_timewarehouse_scrap_to_return');
 $routes->post('user/save_timewarehouse_external', 'User::save_timewarehouse_external');
-$routes->post('user/save_timeoffprod_external', 'User::save_timeoffprod_external');
 $routes->post('user/check_timestamps', 'User::check_timestamps');
 $routes->get('user/checkPendingNotifications', 'User::checkPendingNotifications');
 $routes->get('user/checkOverdueNotifications', 'User::checkOverdueNotifications');
@@ -39,7 +39,9 @@ $routes->get('user/search_key_prod', 'User::search_key_prod');
 $routes->get('user/search_key_offprod', 'User::search_key_offprod');
 $routes->get('user/search_key_incoming', 'User::search_key_incoming');
 $routes->get('user/search_key_ext', 'User::search_key_ext');
-
+$routes->post('user/check_time_difference', 'User::check_time_difference');
+$routes->post('user/get_last_timestamp', 'User::get_last_timestamp');
+$routes->post('user/check_data_exists', 'User::check_data_exists');
 
 
 $routes->group('admnwarehouse', ['filter' => 'authRole:1'], function ($routes) {
@@ -61,13 +63,10 @@ $routes->group('admnproduksi', ['filter' => 'authRole:2'], function ($routes) {
     $routes->post('updatePasswordprod', 'Role::updatePasswordprod');
 });
 
-
 $routes->group('admnoffprod', ['filter' => 'authRole:3'], function ($routes) {
     $routes->get('dashboardoffprod', 'User::admnoffprodDashboard');
     $routes->get('offprod_form', 'User::offprod_form');
     $routes->get('processing_form_offprod', 'User::processing_form_offprod');
-    $routes->get('xacti_aji_offprod', 'User::xacti_aji_offprod');
-    $routes->get('scrap_to_return_offprod', 'User::scrap_to_return_offprod');
     $routes->get('returnoffprod_form', 'User::returnoffprod_form');
     $routes->get('profileoffprod', 'Role::profileoffprod');
     $routes->post('updatePasswordoffprod', 'Role::updatePasswordoffprod');
