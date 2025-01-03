@@ -576,25 +576,15 @@ class User extends Controller
                             session()->setFlashdata('error', 'Data Conditioning sudah diinput sebelumnya.');
                         }
                         break;
-                        case 'mixing':
-                            $conditioningTimestamp = $userModel->get_conditioning_timestamp($search_key);
-                            if (!$conditioningTimestamp) {
-                                $valid = false;
-                                session()->setFlashdata('error', 'Tolong input data Conditioning terlebih dahulu sebelum input data Mixing.');
-                            } elseif ($userModel->get_mixing_timestamp($search_key)) {
-                                $valid = false;
-                                session()->setFlashdata('error', 'Data Mixing sudah diinput sebelumnya.');
-                            } else {
-                                $conditioningTime = strtotime($conditioningTimestamp);
-                                $currentTime = strtotime($timestamp);
-                                $timeDifferenceInSeconds = $currentTime - $conditioningTime;
-                                $timeDifferenceInMinutes = $timeDifferenceInSeconds / 60;
-                                if ($timeDifferenceInMinutes < 1) { //aktual 120menit = 2 jam
-                                    $valid = false;
-                                    session()->setFlashdata('error', 'Tolong tunggu minimal 2 jam setelah Conditioning diinput sebelum input data Mixing.');
-                                }
-                            }
-                            break;
+                    case 'mixing':
+                        if (!$userModel->get_conditioning_timestamp($search_key)) {
+                            $valid = false;
+                            session()->setFlashdata('error', 'Tolong input data Conditioning terlebih dahulu sebelum input data Mixing.');
+                        } elseif ($userModel->get_mixing_timestamp($search_key)) {
+                            $valid = false;
+                            session()->setFlashdata('error', 'Data Mixing sudah diinput sebelumnya.');
+                        }
+                        break;
                     case 'handover':
                         if (!$userModel->get_mixing_timestamp($search_key)) {
                             $valid = false;

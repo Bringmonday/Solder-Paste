@@ -765,7 +765,7 @@ class UserModel extends Model
         }
     }
 
-    public function get_today_solder_paste_exp($limit = 5, $order = 'DESC')
+    public function get_today_solder_paste_exp($order = 'DESC')
     {
         date_default_timezone_set('Asia/Jakarta');
         $today_start = date('Y-m-d 00:00:00');
@@ -775,15 +775,11 @@ class UserModel extends Model
         $query = $this->db->table('solder_paste_test')
                         ->groupStart()
                             ->groupStart()
-                                ->where('handover >=', $two_days_ago)
-                                ->where('handover <=', $today_end)
                                 ->where('handover IS NOT NULL')
                                 ->orWhere('lot_number LIKE','%OLD%')
                                 
                             ->groupEnd()
                             ->orGroupStart()
-                                ->where('openusing >=', $two_days_ago)
-                                ->where('openusing <=', $today_end)
                                 ->where('openusing IS NOT NULL')
                                 ->orWhere('lot_number LIKE','%OLD%')
                             ->groupEnd()
@@ -791,7 +787,6 @@ class UserModel extends Model
                         ->where('returnsp IS NULL') 
                         ->where('scrap IS NULL')
                         ->orderBy('handover', $order)
-                        ->limit($limit)
                         ->get();
     
         return $query->getResultArray();

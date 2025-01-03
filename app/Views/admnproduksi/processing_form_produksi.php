@@ -133,7 +133,7 @@ Proses Produksi
                     </div>
                     <div class="card mt-3"?>
                         <div class="card-header">
-                            <h3 class="card-title">Tabel Solder Paste Expired</h3>
+                            <h3 class="card-title">Solder Paste Out Off Time</h3>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive-exp table-fixed-header">
@@ -150,7 +150,7 @@ Proses Produksi
                                     <tbody>
                                         <?php if (!empty($today_entries_exp)): ?>
                                             <?php foreach ($today_entries_exp as $entry): ?>
-                                                <tr data-datetime="<?= esc($entry['openusing'] ?? $entry['handover']); ?>">    
+                                                <tr datax-handover="<?= esc($entry['handover']); ?>" datax-openusing="<?= esc($entry['openusing']); ?>">  
                                                     <td><?= esc($entry['id']); ?></td>
                                                     <td><?= esc($entry['lot_number']); ?></td>
                                                     <td><?= esc($entry['handover']); ?></td>
@@ -231,28 +231,34 @@ Proses Produksi
 </script>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("DOMContentLoaded", function () {
         function updateRowColors() {
             const rows = document.querySelectorAll('#solder-paste-table-expired tbody tr');
             const currentTime = new Date();
 
             rows.forEach(row => {
-                const dateTimeAttr = row.getAttribute('data-datetime');
-                if (!dateTimeAttr) return;
+                const handoverAttr = row.getAttribute('datax-handover');
+                const openusingAttr = row.getAttribute('datax-openusing');
 
-                const datetime = new Date(dateTimeAttr);
-                const timeDiff = (currentTime - datetime) / 60000; 
-                let rowClass = 'default-color'; 
-                let statusText = '';
+                let rowClass = 'default-color';
+                let statusText = 'Normal';
 
-                if (timeDiff > 3) { // aktual waktu 2880 menit = 48 jam (2 hari)
-                    rowClass = 'table-danger';
-                    statusText = 'Expired';
-                } else if (timeDiff > 2) { // aktual waktu 8 jam (480 menit)
-                    rowClass = 'table-warning';
-                    statusText = 'Melebihi 8 jam';
-                } else {
-                    statusText = 'Normal';
+                if (openusingAttr) {
+                    const openusingTime = new Date(openusingAttr);
+                    const openusingDiff = (currentTime - openusingTime) / 60000; 
+
+                    if (openusingDiff > 2) { // aktual waktu 8 jam (480 menit)
+                        rowClass = 'table-danger';
+                        statusText = 'Out Off Time';
+                    }
+                } else if (handoverAttr) {
+                    const handoverTime = new Date(handoverAttr);
+                    const handoverDiff = (currentTime - handoverTime) / 60000; 
+
+                    if (handoverDiff > 2) { // aktual waktu 2880 menit = 48 jam (2 hari)
+                        rowClass = 'table-danger';
+                        statusText = 'Out Off Time';
+                    }
                 }
 
                 row.className = rowClass;
@@ -261,7 +267,7 @@ Proses Produksi
         }
 
         updateRowColors();
-        setInterval(updateRowColors, 30000);
+        setInterval(updateRowColors, 30000); 
     });
 </script>
 
@@ -577,7 +583,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     .table-responsive-exp {
-        font-size: 60%;
+        font-size: 55%;
         overflow-y: hidden;
         overflow-x: hidden;
         max-height: 240px;
