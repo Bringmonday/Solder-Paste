@@ -20,7 +20,9 @@ $routes->post('user/save_timewarehouse_search_key', 'User::save_timewarehouse_se
 $routes->post('user/save_timeproduksi_search_key', 'User::save_timeproduksi_search_key');
 $routes->post('user/save_timeproduksi_lot_number', 'User::save_timeproduksi_lot_number');
 $routes->post('user/save_timeoffprod_search_key', 'User::save_timeoffprod_search_key');
+$routes->post('user/save_timeoffprod_external', 'User::save_timeoffprod_external');
 $routes->post('user/save_timewarehouse_scrap_to_return', 'User::save_timewarehouse_scrap_to_return');
+$routes->post('user/save_timeoffprod_scrap_to_return', 'User::save_timeoffprod_scrap_to_return');
 $routes->post('user/save_timewarehouse_external', 'User::save_timewarehouse_external');
 $routes->post('user/check_timestamps', 'User::check_timestamps');
 $routes->get('user/checkPendingNotifications', 'User::checkPendingNotifications');
@@ -66,8 +68,10 @@ $routes->group('admnproduksi', ['filter' => 'authRole:2'], function ($routes) {
 $routes->group('admnoffprod', ['filter' => 'authRole:3'], function ($routes) {
     $routes->get('dashboardoffprod', 'User::admnoffprodDashboard');
     $routes->get('offprod_form', 'User::offprod_form');
+    $routes->get('xacti_aji_offprod', 'User::xacti_aji_offprod');
     $routes->get('processing_form_offprod', 'User::processing_form_offprod');
     $routes->get('returnoffprod_form', 'User::returnoffprod_form');
+    $routes->get('scrap_to_return_offprod', 'User::scrap_to_return_offprod');
     $routes->get('profileoffprod', 'Role::profileoffprod');
     $routes->post('updatePasswordoffprod', 'Role::updatePasswordoffprod');
 });

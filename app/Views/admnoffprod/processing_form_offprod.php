@@ -58,7 +58,7 @@ Proses Office Produksi
                         <div class="card-body card-sr">
                             <h4>Today's Solder Paste Entries</h4>
                             <div class="table-responsive table-fixed-header">
-                            <table class="table table-bordered table-striped">
+                                <table class="table table-bordered table-striped">
                                     <thead>
                                         <tr>
                                             <th>ID</th>
@@ -94,6 +94,9 @@ Proses Office Produksi
                                         <?php endif; ?>
                                     </tbody>
                                 </table>
+                            </div>
+                            <div>
+                                <button type="button" class="btn btn-scr" style="margin-top: 10px" onclick="window.location.href='<?= base_url('admnoffprod/xacti_aji_offprod'); ?>'">Send To External</button>
                             </div>
                         </div>
                     </div>
@@ -144,7 +147,7 @@ Proses Office Produksi
                     </div>
                     <div class="card mt-3"?>
                         <div class="card-header">
-                            <h3 class="card-title">Tabel Solder Paste Expired</h3>
+                            <h3 class="card-title">Solder Paste Out Off Time</h3>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive-exp table-fixed-header">
@@ -161,7 +164,7 @@ Proses Office Produksi
                                     <tbody>
                                         <?php if (!empty($today_entries_exp)): ?>
                                             <?php foreach ($today_entries_exp as $entry): ?>
-                                                <tr data-datetime="<?= esc($entry['openusing'] ?? $entry['handover']); ?>">    
+                                                <tr datax-handover="<?= esc($entry['handover']); ?>" datax-openusing="<?= esc($entry['openusing']); ?>">  
                                                     <td><?= esc($entry['id']); ?></td>
                                                     <td><?= esc($entry['lot_number']); ?></td>
                                                     <td><?= esc($entry['handover']); ?></td>
@@ -220,41 +223,6 @@ Proses Office Produksi
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         function updateRowColors() {
-            const rows = document.querySelectorAll('#solder-paste-table-expired tbody tr');
-            const currentTime = new Date();
-
-            rows.forEach(row => {
-                const dateTimeAttr = row.getAttribute('data-datetime');
-                if (!dateTimeAttr) return;
-
-                const datetime = new Date(dateTimeAttr);
-                const timeDiff = (currentTime - datetime) / 60000; 
-                let rowClass = 'default-color'; 
-                let statusText = '';
-
-                if (timeDiff > 3) { // aktual waktu 2880 menit = 48 jam (2 hari)
-                    rowClass = 'table-danger';
-                    statusText = 'Expired';
-                } else if (timeDiff > 2) { // aktual waktu 8 jam (480 menit)
-                    rowClass = 'table-warning';
-                    statusText = 'Melebihi 8 jam';
-                } else {
-                    statusText = 'Normal';
-                }
-
-                row.className = rowClass;
-                row.querySelector('.status').textContent = statusText;
-            });
-        }
-
-        updateRowColors();
-        setInterval(updateRowColors, 30000);
-    });
-</script>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        function updateRowColors() {
             const rows = document.querySelectorAll('#solder-paste-table-open tbody tr');
             const currentTime = new Date();
 
@@ -265,10 +233,10 @@ Proses Office Produksi
                 let rowClass = 'default-color'; 
                 let statusText = '';
                 
-                if (timeDiff > 2) { // aktual waktu 8 jam = 480 menit
+                if (timeDiff > 480) { // aktual waktu 8 jam = 480 menit
                     rowClass = 'table-danger';
                     statusText = 'Melebihi 8 jam';
-                } else if (timeDiff > 1) { // aktual waktu 6 jam = 360 menit
+                } else if (timeDiff > 360) { // aktual waktu 6 jam = 360 menit
                     rowClass = 'table-warning';
                     statusText = 'Melebihi 6 jam';
                 } else {
@@ -286,10 +254,51 @@ Proses Office Produksi
 </script>
 
 <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        function updateRowColors() {
+            const rows = document.querySelectorAll('#solder-paste-table-expired tbody tr');
+            const currentTime = new Date();
+
+            rows.forEach(row => {
+                const handoverAttr = row.getAttribute('datax-handover');
+                const openusingAttr = row.getAttribute('datax-openusing');
+
+                let rowClass = 'default-color';
+                let statusText = 'Normal';
+
+                if (openusingAttr) {
+                    const openusingTime = new Date(openusingAttr);
+                    const openusingDiff = (currentTime - openusingTime) / 60000; 
+
+                    if (openusingDiff > 480) { // aktual waktu 8 jam (480 menit)
+                        rowClass = 'table-danger';
+                        statusText = 'Out Off Time';
+                    }
+                } else if (handoverAttr) {
+                    const handoverTime = new Date(handoverAttr);
+                    const handoverDiff = (currentTime - handoverTime) / 60000; 
+
+                    if (handoverDiff > 2880) { // aktual waktu 2880 menit = 48 jam (2 hari)
+                        rowClass = 'table-danger';
+                        statusText = 'Out Off Time';
+                    }
+                }
+
+                row.className = rowClass;
+                row.querySelector('.status').textContent = statusText;
+            });
+        }
+
+        updateRowColors();
+        setInterval(updateRowColors, 30000); 
+    });
+</script>
+
+<script>
     function saveTimestamp(column) {
         var SearchKey = document.getElementById('search_key').value;
         if (SearchKey) {
-            
+
             $.ajax({
                 url: '<?= base_url('user/get_last_timestamp'); ?>',
                 type: 'POST',
@@ -299,8 +308,10 @@ Proses Office Produksi
                     var lastTimestamp = new Date(response.timestamp);
                     var currentTime = new Date();
                     var diffInMinutes = (currentTime - lastTimestamp) / 60000;
-                    
-                    if (column === 'mixing' && diffInMinutes <= 2) {
+
+                    if (column === 'mixing' && response.mixing !== null) {
+                        submitTimestampForm(SearchKey, column);
+                    } else if (column === 'mixing' && diffInMinutes <= 120) {
                         Swal.fire({
                             title: 'Apakah anda yakin?',
                             text: "Solder paste belum melewati batas minimum 2 jam. Apakah anda yakin ingin melanjutkan proses?",
@@ -631,14 +642,10 @@ Proses Office Produksi
 
     .table-responsive {
     font-size: 70%;
-    overflow-y: hidden;
+    overflow-y: auto;
     overflow-x: hidden;
-    max-height: 423px;
+    max-height: 442px;
     display: block;
-    }
-
-    .table-responsive:hover {
-        overflow-y: auto;
     }
 
     .table-responsive table {
@@ -682,6 +689,12 @@ Proses Office Produksi
 
     .content {
         padding-top: 8px;
+    }
+
+    .btn-scr { 
+        background-color: #f5911f;
+        color: #fff;
+        padding: 5px;
     }
 
     .btn-rs { 

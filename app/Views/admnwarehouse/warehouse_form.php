@@ -115,6 +115,19 @@ Incoming
         if (lot_number !== '' && id !== '') {
             var search_key = lot_number + id;  
 
+            var existingData = JSON.parse(localStorage.getItem('tempData')) || [];
+            var isDataInLocalStorage = existingData.some(entry => entry.search_key === search_key);
+
+            if (isDataInLocalStorage) {
+                Swal.fire({
+                    title: 'Data sudah ada',
+                    text: 'Lot Number dan ID sudah ada di local storage.',
+                    icon: 'warning',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+
             fetch('<?= base_url('user/check_data_exists'); ?>', {
                 method: 'POST',
                 headers: {

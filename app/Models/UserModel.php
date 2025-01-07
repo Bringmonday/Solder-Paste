@@ -7,7 +7,7 @@ use Config\Database;
 
 class UserModel extends Model
 {
-    protected $table = 'solder_paste_test';
+    protected $table = 'solder_paste_new';
     protected $primaryKey = 'id';
 
     protected $returnType = 'array';
@@ -25,6 +25,10 @@ class UserModel extends Model
     {
         return $this->where('conditioning IS NOT NULL')
                     ->where('mixing IS NULL')
+                    ->where('handover IS NULL')
+                    ->where('openusing IS NULL')
+                    ->where('returnsp IS NULL')
+                    ->where('scrap IS NULL')
                     ->countAllResults();
     }
 
@@ -141,7 +145,7 @@ class UserModel extends Model
     public function insertData($data)
     {
         $data['search_key'] = $data['lot_number'] . $data['id'];  
-        $this->db->table('solder_paste_test')->insert($data); 
+        $this->db->table('solder_paste_new')->insert($data); 
     }
 
     public function updateSearchKey($lot_number, $id)
@@ -286,7 +290,7 @@ class UserModel extends Model
         $today_start = date('Y-m-d 00:00:00');
         $today_end = date('Y-m-d 23:59:59');
 
-        $query = $this->db->table('solder_paste_test')
+        $query = $this->db->table('solder_paste_new')
                         ->groupStart()
                             ->where('returnsp >=', $today_start)
                             ->where('returnsp <=', $today_end)
@@ -305,7 +309,7 @@ class UserModel extends Model
         $today_start = date('Y-m-d 00:00:00');
         $today_end = date('Y-m-d 23:59:59');
 
-        $query = $this->db->table('solder_paste_test')
+        $query = $this->db->table('solder_paste_new')
                         ->where('openusing >=', $today_start)
                         ->where('openusing <=', $today_end)
                         ->orWhere('returnsp >=', $today_start)
@@ -323,7 +327,7 @@ class UserModel extends Model
     {
         date_default_timezone_set('Asia/Jakarta');
 
-        $query = $this->db->table('solder_paste_test')
+        $query = $this->db->table('solder_paste_new')
                         ->where('openusing IS NOT NULL') 
                         ->where('returnsp IS NULL')
                         ->where('scrap IS NULL')
@@ -341,7 +345,7 @@ class UserModel extends Model
         $seven_days_ago = date('Y-m-d 00:00:00', strtotime('-7 days'));
         $today_end = date('Y-m-d 23:59:59');
 
-        $query = $this->db->table('solder_paste_test')
+        $query = $this->db->table('solder_paste_new')
                         ->where('openusing >=', $seven_days_ago)
                         ->where('openusing <=', $today_end)
                         ->where('openusing IS NOT NULL')
@@ -360,7 +364,7 @@ class UserModel extends Model
         $today_start = date('Y-m-d 00:00:00');
         $today_end = date('Y-m-d 23:59:59');
 
-        $query = $this->db->table('solder_paste_test')
+        $query = $this->db->table('solder_paste_new')
                         ->where('openusing >=', $today_start)
                         ->where('openusing <=', $today_end)
                         ->where('openusing IS NOT NULL') 
@@ -379,7 +383,7 @@ class UserModel extends Model
         $today_start = date('Y-m-d 00:00:00');
         $today_end = date('Y-m-d 23:59:59');
 
-        $query = $this->db->table('solder_paste_test')
+        $query = $this->db->table('solder_paste_new')
                         ->groupStart()
                             ->where('incoming >=', $today_start)
                             ->where('incoming <=', $today_end)
@@ -408,7 +412,7 @@ class UserModel extends Model
         $today_start = date('Y-m-d 00:00:00');
         $today_end = date('Y-m-d 23:59:59');
 
-        $query = $this->db->table('solder_paste_test')
+        $query = $this->db->table('solder_paste_new')
                         ->groupStart()
                             ->where('incoming >=', $today_start)
                             ->where('incoming <=', $today_end)
@@ -430,7 +434,7 @@ class UserModel extends Model
         $today_start = date('Y-m-d 00:00:00');
         $today_end = date('Y-m-d 23:59:59');
 
-        $query = $this->db->table('solder_paste_test')
+        $query = $this->db->table('solder_paste_new')
                         ->where('openusing >=', $today_start)
                         ->where('openusing <=', $today_end)
                         ->where('openusing IS NOT NULL') 
@@ -451,7 +455,7 @@ class UserModel extends Model
                     ->findAll();
     }
     
-    public function get_today_return($limit = 5)
+    public function get_today_return()
     {
         $startOfDay = date('Y-m-d') . ' 07:00:00';
         $endOfDay = date('Y-m-d') . ' 19:00:00';
@@ -462,7 +466,6 @@ class UserModel extends Model
                     ->where('returnsp <=', $endOfDay)
                     ->where('DATEDIFF(day, returnsp, GETDATE()) <=', 1) 
                     ->orderBy('returnsp', 'DESC')
-                    ->limit($limit)
                     ->findAll();
     }
 
@@ -498,7 +501,7 @@ class UserModel extends Model
             WHERE conditioning IS NOT NULL
             AND CAST(conditioning AS DATE) = '$currentDate'  -- Membatasi hanya pada tanggal saat ini
             AND CONVERT(TIME, conditioning) BETWEEN '07:00:00' AND '19:00:00'
-            AND DATEDIFF(MINUTE, conditioning, GETDATE()) >= 2 -- Aktual 120 menit = 2 jam
+            AND DATEDIFF(MINUTE, conditioning, GETDATE()) >= 120 -- Aktual 120 menit = 2 jam
             AND mixing IS NULL
             AND handover IS NULL
             AND lot_number NOT LIKE 'RE%'
@@ -518,7 +521,7 @@ class UserModel extends Model
             WHERE openusing IS NOT NULL
             AND CAST(openusing AS DATE) = '$currentDate'  -- Membatasi hanya pada tanggal saat ini
             AND CONVERT(TIME, openusing) BETWEEN '07:00:00' AND '19:00:00'
-            AND DATEDIFF(MINUTE, openusing, GETDATE()) >= 2 -- aktual 480 menit = 8 jam
+            AND DATEDIFF(MINUTE, openusing, GETDATE()) >= 480 -- aktual 480 menit = 8 jam
             AND returnsp IS NULL
             AND scrap IS NULL
             AND lot_number NOT LIKE 'RE%'
@@ -772,7 +775,7 @@ class UserModel extends Model
         $today_end = date('Y-m-d 23:59:59');
         $two_days_ago = date('Y-m-d H:i:s', strtotime('-2 days'));
     
-        $query = $this->db->table('solder_paste_test')
+        $query = $this->db->table('solder_paste_new')
                         ->groupStart()
                             ->groupStart()
                                 ->where('handover IS NOT NULL')
@@ -798,6 +801,14 @@ class UserModel extends Model
                     ->where('id', $id)
                     ->countAllResults() > 0;
     }  
+
+    public function get_mixing_value($search_key)
+    {
+        $query = $this->select('mixing')  
+                    ->where('search_key', $search_key)
+                    ->first();
+        return ($query) ? $query['mixing'] : null; 
+    }
 
 
 }

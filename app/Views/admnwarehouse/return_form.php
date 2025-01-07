@@ -51,11 +51,15 @@ Return
                                                 <td class="text-center"><?= $row['returnsp'] ?></td>
                                                 <td class="text-center"><?= $row['incoming'] ? $row['incoming'] : '-' ?></td>
                                                 <td class="text-center">
-                                                    <form action="<?= site_url('user/received') ?>" method="post">
-                                                        <input type="hidden" name="id" value="<?= $row['id'] ?>">
-                                                        <input type="hidden" name="lot_number" value="<?= $row['lot_number'] ?>">
-                                                        <button type="submit" class="btn btn-success btn-sm">Received</button>
-                                                    </form>
+                                                    <?php if ($row['incoming']): ?>
+                                                        <span class="text-success"><strong>Received</span>
+                                                    <?php else: ?>
+                                                        <form action="<?= site_url('user/received') ?>" method="post">
+                                                            <input type="hidden" name="id" value="<?= $row['id'] ?>">
+                                                            <input type="hidden" name="lot_number" value="<?= $row['lot_number'] ?>">
+                                                            <button type="submit" class="btn btn-success btn-sm">Received</button>
+                                                        </form>
+                                                    <?php endif; ?>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>

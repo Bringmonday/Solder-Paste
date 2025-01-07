@@ -775,7 +775,7 @@ class User extends Controller
                             $interval = $current_time->diff($openusing_time);
 
                             $total_minutes = ($interval->days * 24 * 60) + ($interval->h * 60) + $interval->i;
-                            if ($total_minutes >= 2) { // aktual waktu 8 jam = 480 menit
+                            if ($total_minutes >= 480) { // aktual waktu 8 jam = 480 menit
                             $valid = false;
                             session()->setFlashdata('error', 'Waktu input data Return sudah lewat dari batas waktu 8 jam.');
         
@@ -1063,7 +1063,7 @@ class User extends Controller
                             $interval = $current_time->diff($openusing_time);
 
                             $total_minutes = ($interval->days * 24 * 60) + ($interval->h * 60) + $interval->i;
-                            if ($total_minutes >= 2) { // aktual waktu 8 jam = 480 menit
+                            if ($total_minutes >= 480) { // aktual waktu 8 jam = 480 menit
                             $valid = false;
                             session()->setFlashdata('error', 'Waktu input data Return sudah lewat dari batas waktu 8 jam.');
         
@@ -1155,6 +1155,34 @@ class User extends Controller
     }
 
     public function save_timewarehouse_scrap_to_return()
+    {
+        $lot_number = $this->request->getPost('lot_number');
+        $id = $this->request->getPost('id');
+
+        if (empty($lot_number) || empty($id)) {
+            return redirect()->back()->with('error', 'Lot number dan ID tidak bisa kosong.');
+        }
+
+        $UserModel = $this->UserModel;
+    
+        $existingEntry = $UserModel->where('lot_number', $lot_number)->where('id', $id)->first();
+
+        if (!$existingEntry) {
+            return redirect()->back()->with('error', 'Kombinasi Lot number dan ID tidak ditemukan.');
+        }
+
+        if (empty($existingEntry['scrap'])) {
+            return redirect()->back()->with('error', 'Data kolom scrap belum diinput');
+        }
+
+        $timestamp = date('Y-m-d H:i:s');
+        $UserModel->update_lot_number_scrap($existingEntry['id'], $existingEntry['lot_number'], $timestamp);
+        $UserModel->insert_new_solder_paste_row_scrap($existingEntry['lot_number'], $existingEntry, $timestamp);
+
+        return redirect()->back()->with('success', 'Solder paste scrap berhasil di return.');
+    }
+
+    public function save_timeoffprod_scrap_to_return()
     {
         $lot_number = $this->request->getPost('lot_number');
         $id = $this->request->getPost('id');
@@ -1508,19 +1536,23 @@ class User extends Controller
         $request = $this->request;
         $search_key = $request->getPost('search_key');
         $userModel = new UserModel();
-
+    
         $conditioningTimestamp = $userModel->get_conditioning_timestamp($search_key);
-
-        if ($conditioningTimestamp) {
+        $mixingValue = $userModel->get_mixing_value($search_key);
+    
+        if ($conditioningTimestamp !== false) {
             return $this->response->setJSON([
-                'timestamp' => $conditioningTimestamp
+                'timestamp' => $conditioningTimestamp,
+                'mixing' => $mixingValue 
             ]);
         } else {
             return $this->response->setJSON([
-                'timestamp' => null
+                'timestamp' => null,
+                'mixing' => null 
             ]);
         }
     }
+    
 
     public function check_data_exists()
     {

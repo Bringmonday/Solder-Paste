@@ -43,7 +43,7 @@ Return
                                             <th class="text-center">Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="temp-data">
+                                    <tbody>
                                         <?php foreach ($today_entries_rtn as $row): ?>
                                             <tr>
                                                 <td class="text-center"><?= $row['id'] ?></td>
@@ -51,11 +51,15 @@ Return
                                                 <td class="text-center"><?= $row['returnsp'] ?></td>
                                                 <td class="text-center"><?= $row['incoming'] ? $row['incoming'] : '-' ?></td>
                                                 <td class="text-center">
-                                                    <form action="<?= site_url('user/receivedoffprod') ?>" method="post">
-                                                        <input type="hidden" name="id" value="<?= $row['id'] ?>">
-                                                        <input type="hidden" name="lot_number" value="<?= $row['lot_number'] ?>">
-                                                        <button type="submit" class="btn btn-success btn-sm">Received</button>
-                                                    </form>
+                                                    <?php if ($row['incoming']): ?>
+                                                        <span class="text-success"><strong>Received</span>
+                                                    <?php else: ?>
+                                                        <form action="<?= site_url('user/receivedoffprod') ?>" method="post">
+                                                            <input type="hidden" name="id" value="<?= $row['id'] ?>">
+                                                            <input type="hidden" name="lot_number" value="<?= $row['lot_number'] ?>">
+                                                            <button type="submit" class="btn btn-success btn-sm">Received</button>
+                                                        </form>
+                                                    <?php endif; ?>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
@@ -163,11 +167,11 @@ Return
     }
 
     .table-fixed-header {
-        max-height: 400px; /* tinggi tabel pada tablet */
+        max-height: 400px; 
     }
 
     .card-body, .card-body-rs {
-        max-height: 400px; /* tinggi card body */
+        max-height: 400px; 
     }
 
     .card-body-rs {

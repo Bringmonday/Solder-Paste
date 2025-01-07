@@ -87,7 +87,7 @@ Proses Warehouse
                                 </table>
                             </div>
                             <div>
-                                <button type="button" class="btn btn-scr btn-sm" style="margin-top: 10px" onclick="window.location.href='<?= base_url('admnwarehouse/xacti_aji'); ?>'">Send To External</button>
+                                <button type="button" class="btn btn-scr" style="margin-top: 10px" onclick="window.location.href='<?= base_url('admnwarehouse/xacti_aji'); ?>'">Send To External</button>
                             </div>
                         </div>
                     </div>
@@ -124,7 +124,7 @@ Proses Warehouse
     function saveTimestamp(column) {
         var SearchKey = document.getElementById('search_key').value;
         if (SearchKey) {
-            
+
             $.ajax({
                 url: '<?= base_url('user/get_last_timestamp'); ?>',
                 type: 'POST',
@@ -134,8 +134,10 @@ Proses Warehouse
                     var lastTimestamp = new Date(response.timestamp);
                     var currentTime = new Date();
                     var diffInMinutes = (currentTime - lastTimestamp) / 60000;
-                    
-                    if (column === 'mixing' && diffInMinutes <= 120) {
+
+                    if (column === 'mixing' && response.mixing !== null) {
+                        submitTimestampForm(SearchKey, column);
+                    } else if (column === 'mixing' && diffInMinutes <= 120) {
                         Swal.fire({
                             title: 'Apakah anda yakin?',
                             text: "Solder paste belum melewati batas minimum 2 jam. Apakah anda yakin ingin melanjutkan proses?",

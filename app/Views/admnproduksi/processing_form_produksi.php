@@ -54,36 +54,36 @@ Proses Produksi
 
                         <div class="card-body card-sr">
                             <h4>Today's Solder Paste Entries</h4>
-                                <div class="table-responsive table-fixed-header">
-                                    <table id="solder-paste-table" class="table table-bordered table-striped">
-                                        <thead>
+                            <div class="table-responsive table-fixed-header">
+                                <table id="solder-paste-table" class="table table-bordered table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Lot Number</th>
+                                            <th>Open</th>
+                                            <th>Return</th>
+                                            <th>Scrap</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    <?php if (!empty($today_entries_prod)): ?>
+                                        <?php foreach ($today_entries_prod as $entry): ?>
                                             <tr>
-                                                <th>ID</th>
-                                                <th>Lot Number</th>
-                                                <th>Open</th>
-                                                <th>Return</th>
-                                                <th>Scrap</th>
+                                                <td><?= $entry['id']; ?></td>
+                                                <td><?= $entry['lot_number']; ?></td>
+                                                <td><?= $entry['openusing']; ?></td>
+                                                <td><?= $entry['returnsp']; ?></td>
+                                                <td><?= $entry['scrap']; ?></td>
                                             </tr>
-                                        </thead>
-                                        <tbody>
-                                        <?php if (!empty($today_entries_prod)): ?>
-                                            <?php foreach ($today_entries_prod as $entry): ?>
-                                                <tr>
-                                                    <td><?= $entry['id']; ?></td>
-                                                    <td><?= $entry['lot_number']; ?></td>
-                                                    <td><?= $entry['openusing']; ?></td>
-                                                    <td><?= $entry['returnsp']; ?></td>
-                                                    <td><?= $entry['scrap']; ?></td>
-                                                </tr>
-                                            <?php endforeach; ?>
-                                        <?php else: ?>
-                                            <tr class="no-entries">
-                                                <td colspan="5">No entries for today.</td>
-                                            </tr>
-                                        <?php endif; ?>
-                                    </tbody>
-                                    </table>
-                                </div>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr class="no-entries">
+                                            <td colspan="5">No entries for today.</td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -210,10 +210,10 @@ Proses Produksi
                 let rowClass = 'default-color'; 
                 let statusText = '';
                 
-                if (timeDiff > 2) { // aktual waktu 8 jam = 480 menit
+                if (timeDiff > 480) { // aktual waktu 8 jam = 480 menit
                     rowClass = 'table-danger';
                     statusText = 'Melebihi 8 jam';
-                } else if (timeDiff > 1) { // aktual waktu 6 jam = 360 menit
+                } else if (timeDiff > 360) { // aktual waktu 6 jam = 360 menit
                     rowClass = 'table-warning';
                     statusText = 'Melebihi 6 jam';
                 } else {
@@ -247,7 +247,7 @@ Proses Produksi
                     const openusingTime = new Date(openusingAttr);
                     const openusingDiff = (currentTime - openusingTime) / 60000; 
 
-                    if (openusingDiff > 2) { // aktual waktu 8 jam (480 menit)
+                    if (openusingDiff > 480) { // aktual waktu 8 jam (480 menit)
                         rowClass = 'table-danger';
                         statusText = 'Out Off Time';
                     }
@@ -255,7 +255,7 @@ Proses Produksi
                     const handoverTime = new Date(handoverAttr);
                     const handoverDiff = (currentTime - handoverTime) / 60000; 
 
-                    if (handoverDiff > 2) { // aktual waktu 2880 menit = 48 jam (2 hari)
+                    if (handoverDiff > 2880) { // aktual waktu 2880 menit = 48 jam (2 hari)
                         rowClass = 'table-danger';
                         statusText = 'Out Off Time';
                     }

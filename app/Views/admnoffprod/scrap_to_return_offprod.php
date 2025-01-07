@@ -51,7 +51,7 @@ Proses offprod
                         </div>
 
                         <div class="card-body card-sr">
-                            <h4>Tabel Informasi</h4>
+                            <h4>Table Scrap to Return</h4>
                             <div class="table-responsive table-fixed-header">
                                 <table class="table table-bordered table-hover">
                                     <thead>
