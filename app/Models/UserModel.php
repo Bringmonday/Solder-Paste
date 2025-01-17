@@ -18,6 +18,11 @@ class UserModel extends Model
     {
         return $this->where('incoming IS NOT NULL')
                     ->where('conditioning IS NULL')
+                    ->where('mixing IS NULL')
+                    ->where('handover IS NULL')
+                    ->where('openusing IS NULL')
+                    ->where('returnsp IS NULL')
+                    ->where('scrap IS NULL')
                     ->countAllResults();
     }
 
@@ -36,6 +41,9 @@ class UserModel extends Model
     {
         return $this->where('mixing IS NOT NULL')
                     ->where('handover IS NULL')
+                    ->where('openusing IS NULL')
+                    ->where('returnsp IS NULL')
+                    ->where('scrap IS NULL')
                     ->countAllResults();
     }
 
@@ -141,6 +149,7 @@ class UserModel extends Model
         return $this->where('lot_number NOT LIKE', 'RE%')
                     ->findAll();
     }
+
 
     public function insertData($data)
     {
@@ -500,7 +509,7 @@ class UserModel extends Model
             FROM {$this->table}
             WHERE conditioning IS NOT NULL
             AND CAST(conditioning AS DATE) = '$currentDate'  -- Membatasi hanya pada tanggal saat ini
-            AND CONVERT(TIME, conditioning) BETWEEN '07:00:00' AND '19:00:00'
+            -- AND CONVERT(TIME, conditioning) BETWEEN '07:00:00' AND '19:00:00'
             AND DATEDIFF(MINUTE, conditioning, GETDATE()) >= 120 -- Aktual 120 menit = 2 jam
             AND mixing IS NULL
             AND handover IS NULL
@@ -519,9 +528,9 @@ class UserModel extends Model
             SELECT id, lot_number, search_key, openusing
             FROM {$this->table}
             WHERE openusing IS NOT NULL
-            AND CAST(openusing AS DATE) = '$currentDate'  -- Membatasi hanya pada tanggal saat ini
-            AND CONVERT(TIME, openusing) BETWEEN '07:00:00' AND '19:00:00'
-            AND DATEDIFF(MINUTE, openusing, GETDATE()) >= 480 -- aktual 480 menit = 8 jam
+            AND CAST(openusing AS DATE) = '$currentDate' 
+            -- AND CONVERT(TIME, openusing) BETWEEN '07:00:00' AND '19:00:00'
+            AND DATEDIFF(MINUTE, openusing, GETDATE()) >= 480
             AND returnsp IS NULL
             AND scrap IS NULL
             AND lot_number NOT LIKE 'RE%'
@@ -768,32 +777,33 @@ class UserModel extends Model
         }
     }
 
-    public function get_today_solder_paste_exp($order = 'DESC')
-    {
-        date_default_timezone_set('Asia/Jakarta');
-        $today_start = date('Y-m-d 00:00:00');
-        $today_end = date('Y-m-d 23:59:59');
-        $two_days_ago = date('Y-m-d H:i:s', strtotime('-2 days'));
-    
-        $query = $this->db->table('solder_paste_new')
-                        ->groupStart()
-                            ->groupStart()
-                                ->where('handover IS NOT NULL')
-                                ->orWhere('lot_number LIKE','%OLD%')
-                                
-                            ->groupEnd()
-                            ->orGroupStart()
-                                ->where('openusing IS NOT NULL')
-                                ->orWhere('lot_number LIKE','%OLD%')
-                            ->groupEnd()
-                        ->groupEnd()
-                        ->where('returnsp IS NULL') 
-                        ->where('scrap IS NULL')
-                        ->orderBy('handover', $order)
-                        ->get();
-    
-        return $query->getResultArray();
-    }    
+    public function get_today_solder_paste_exp($order = 'DESC', $searchKey = null)
+{
+    date_default_timezone_set('Asia/Jakarta');
+    $query = $this->db->table('solder_paste_new')
+                      ->groupStart()
+                          ->groupStart()
+                              ->where('handover IS NOT NULL')
+                              ->orWhere('lot_number LIKE', '%OLD%')
+                          ->groupEnd()
+                          ->orGroupStart()
+                              ->where('openusing IS NOT NULL')
+                              ->orWhere('lot_number LIKE', '%OLD%')
+                          ->groupEnd()
+                      ->groupEnd()
+                      ->where('openusing IS NULL')
+                      ->where('returnsp IS NULL')
+                      ->where('scrap IS NULL')
+                      ->orderBy('handover', $order);
+
+    if ($searchKey) {
+        // Filtering based on first 3 digits of the ID
+        $query->like('id', $searchKey, 'after'); // 'after' ensures it filters based on the beginning part
+    }
+
+    return $query->get()->getResultArray();
+}
+
 
     public function dataExists($lot_number, $id)
     {

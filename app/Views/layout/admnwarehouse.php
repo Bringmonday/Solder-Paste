@@ -4,11 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $this->renderSection('title'); ?></title>
-    <!-- Include Bootstrap CSS and AdminLTE CSS -->
-    <link rel="stylesheet" href="<?= base_url('assets/dist/css/bootstrap.min.css'); ?>">
     <link rel="stylesheet" href="<?= base_url('assets/dist/css/adminlte.min.css'); ?>">
-    <!-- Additional CSS -->
-    <link rel="stylesheet" href="<?= base_url('public/assets/dist/css/custom.css'); ?>">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="icon" href="<?= base_url('assets/images/avi2.png'); ?>" type="image/png">

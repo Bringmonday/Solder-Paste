@@ -30,6 +30,7 @@ $routes->get('user/checkOverdueNotifications', 'User::checkOverdueNotifications'
 $routes->get('user/getNotifications', 'User::getNotifications');
 $routes->get('user/getNotificationsProd', 'User::getNotificationsProd');
 $routes->get('user/getNotificationsOffProd', 'User::getNotificationsOffProd');
+$routes->get('user/fetch_updated_solder_paste_exp', 'User::fetch_updated_solder_paste_exp');
 $routes->post('user/update_lot_number', 'User::update_lot_number');
 $routes->post('user/received', 'User::received');
 $routes->post('user/receivedoffprod', 'User::receivedoffprod');

@@ -124,6 +124,49 @@ Proses Warehouse
     function saveTimestamp(column) {
         var SearchKey = document.getElementById('search_key').value;
         if (SearchKey) {
+            var form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '<?= base_url('user/save_timewarehouse_search_key'); ?>';
+
+            var SearchKeyField = document.createElement('input');
+            SearchKeyField.type = 'hidden';
+            SearchKeyField.name = 'search_key';
+            SearchKeyField.value = SearchKey;
+            form.appendChild(SearchKeyField);
+
+            var columnField = document.createElement('input');
+            columnField.type = 'hidden';
+            columnField.name = 'column';
+            columnField.value = column;
+            form.appendChild(columnField);
+
+            document.body.appendChild(form);
+            form.submit();
+        } else {
+            Swal.fire({
+                title: 'Input Tidak Lengkap',
+                text: 'Tolong input Lot Number dan ID terlebih dahulu.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        }
+    }
+
+    function resetFields() {
+        $('#search_key').val('');
+        $('#search_key').focus();
+    }
+
+    $(document).ready(function() {
+        $('#search_key').focus();
+    });
+</script>
+
+<!-- Fungsi lama memberikan notifikasi pop up mixing -->
+<!-- <script>
+    function saveTimestamp(column) {
+        var SearchKey = document.getElementById('search_key').value;
+        if (SearchKey) {
 
             $.ajax({
                 url: '<?= base_url('user/get_last_timestamp'); ?>',
@@ -209,7 +252,7 @@ Proses Warehouse
     $(document).ready(function() {
         $('#search_key').focus();
     });
-</script>
+</script> -->
 
 <script>
     let debounceTimeout;

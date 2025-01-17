@@ -35,7 +35,7 @@
             <!-- Right navbar links -->
             <ul class="navbar-nav ml-auto">
                 <!-- User Dropdown Menu -->
-                <li class="nav-item dropdown">
+                <!-- <li class="nav-item dropdown">
                     <a href="<?php echo base_url('admnoffprod/processing_form_offprod'); ?>" class="nav-link" data-toggle="dropdown">
                         <i class="fa fa-bell"></i>
                         <span id="notification-icon" class="label label-warning" style="display: none;"><i class="fa fa-exclamation-circle"></i></span>
@@ -48,7 +48,7 @@
                             </ul>
                         </li>
                     </ul>
-                </li>
+                </li> -->
                 <li class="nav-item dropdown">
                     <a class="nav-link" data-toggle="dropdown" href="#">
                         <i class="far fa-user text-dark"></i>
@@ -78,7 +78,7 @@
                 <!-- Sidebar user panel (optional) -->
                 <div class="user-panel mt-3 pb-3 mb-3 d-flex">
                     <div class="info">
-                        <span class="d-block text-dark"><b>Admin offprod</b></span>
+                        <span class="d-block text-dark"><b>Departement Produksi</b></span>
                     </div>
                 </div>
 
@@ -95,13 +95,13 @@
                             </a>
                         </li>
                         <li class="nav-item has-treeview">
-                            <a href="#" class="nav-link">
+                            <!-- <a href="#" class="nav-link">
                                 <i class="nav-icon fas fa-th-list"></i>
                                 <p>
                                     Operations
                                     <i class="right fas fa-angle-left"></i>
                                 </p>
-                            </a>
+                            </a> -->
                             <ul class="nav nav-treeview">
                                 <li class="nav-item">
                                     <a href="<?= base_url('admnoffprod/offprod_form'); ?>" class="nav-link">

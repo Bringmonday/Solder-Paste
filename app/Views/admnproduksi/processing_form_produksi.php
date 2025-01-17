@@ -55,7 +55,7 @@ Proses Produksi
                         <div class="card-body card-sr">
                             <h4>Today's Solder Paste Entries</h4>
                             <div class="table-responsive table-fixed-header">
-                                <table id="solder-paste-table" class="table table-bordered table-striped">
+                                <table id="solder-paste-table" class="table table-bordered table-hover">
                                     <thead>
                                         <tr>
                                             <th>ID</th>
@@ -89,49 +89,93 @@ Proses Produksi
                 </div>
 
                 <div class="col-md-4">
-                    <div class="card card-new">
+                <div class="card card-new">
+    <div class="card-header">
+        <h3 class="card-title">Tabel Solder Paste Open</h3>
+    </div>
+    
+    <div class="card-body">
+        <input type="text" id="search-id" class="form-control mb-3" placeholder="Search by ID" />
+        
+        <div class="table-responsive-open table-fixed-header">
+            <table id="solder-paste-table-open" class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Lot Number</th>
+                        <th>Open</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (!empty($today_entries_open)): ?>
+                        <?php foreach ($today_entries_open as $entry): ?>
+                            <tr data-openusing="<?= esc($entry['openusing']); ?>" data-id="<?= esc($entry['id']); ?>">
+                                <td><?= esc($entry['id']); ?></td>
+                                <td><?= esc($entry['lot_number']); ?></td>
+                                <td><?= esc($entry['openusing']); ?></td>
+                                <td class="status"></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="4">No entries for today.</td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+        
+        <p class="card-description">
+            <span class="darkorange-color">Kuning</span> <b>menunjukkan solder paste sudah dibuka melebihi 6 jam</b>
+        </p>
+        <p class="card-description">
+            <span class="red-color">Merah</span> <b>menunjukkan solder paste sudah dibuka melebihi 8 jam</b>
+        </p>
+    </div>
+</div>
+                    <div class="card mt-3">
                         <div class="card-header">
-                            <h3 class="card-title">Tabel Solder Paste Open</h3>
+                            <h3 class="card-title">Solder Paste Handover</h3>
                         </div>
-                        
                         <div class="card-body">
-                            <div class="table-responsive-open table-fixed-header">
-                                <table id="solder-paste-table-open" class="table table-bordered table-hover">
+                            <!-- Form Pencarian -->
+                            <div class="mb-3">
+                                <input type="text" id="search-id" class="form-control" placeholder="Search by ID">
+                            </div>
+                            <div class="table-responsive-exp table-fixed-header">
+                                <table id="solder-paste-table-expired" class="table table-bordered table-hover">
                                     <thead>
                                         <tr>
                                             <th>ID</th>
                                             <th>Lot Number</th>
-                                            <th>Open</th>
+                                            <th>Handover</th>
                                             <th>Status</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <?php if (!empty($today_entries_open)): ?>
-                                            <?php foreach ($today_entries_open as $entry): ?>
-                                                <tr data-openusing="<?= esc($entry['openusing']); ?>">
+                                        <?php if (!empty($today_entries_exp)): ?>
+                                            <?php foreach ($today_entries_exp as $entry): ?>
+                                                <tr datax-handover="<?= esc($entry['handover']); ?>" data-id="<?= esc($entry['id']); ?>">  
                                                     <td><?= esc($entry['id']); ?></td>
                                                     <td><?= esc($entry['lot_number']); ?></td>
-                                                    <td><?= esc($entry['openusing']); ?></td>
-                                                    <td class="status"></td>
+                                                    <td><?= esc($entry['handover']); ?></td>
+                                                    <td class="status">Normal</td>
                                                 </tr>
                                             <?php endforeach; ?>
                                         <?php else: ?>
                                             <tr>
-                                                <td colspan="4">No entries for today.</td>
+                                                <td colspan="5">No entries for today.</td>
                                             </tr>
                                         <?php endif; ?>
                                     </tbody>
                                 </table>
                             </div>
-                            <p class="card-description">
-                                <span class="darkorange-color">Kuning</span> <b>menunjukkan solder paste sudah dibuka melebihi 6 jam</b>
-                            </p>
-                            <p class="card-description">
-                                <span class="red-color">Merah</span> <b>menunjukkan solder paste sudah dibuka melebihi 8 jam</b>
-                            </p>
                         </div>
                     </div>
-                    <div class="card mt-3"?>
+                    
+                    <!-- Fungsi lama yang menampilkan handover dan openusing -->
+                    <!-- <div class="card mt-3"?>
                         <div class="card-header">
                             <h3 class="card-title">Solder Paste Out Off Time</h3>
                         </div>
@@ -167,7 +211,8 @@ Proses Produksi
                                 </table>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
+
                 </div>
 
                 <div class="col-md-3">
@@ -197,7 +242,7 @@ Proses Produksi
 <!-- Load Quagga JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
 
-<script>
+<!-- <script>
     document.addEventListener("DOMContentLoaded", function() {
         function updateRowColors() {
             const rows = document.querySelectorAll('#solder-paste-table-open tbody tr');
@@ -228,9 +273,158 @@ Proses Produksi
         updateRowColors();
         setInterval(updateRowColors, 30000);
     });
+</script> -->
+
+<!-- fungsi baru untuk priority solder paste lebih dari 8 jam -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Function to filter rows based on search
+        const searchInput = document.getElementById("search-id");
+
+        searchInput.addEventListener("input", function () {
+            const searchValue = searchInput.value.trim();
+            const rows = Array.from(document.querySelectorAll('#solder-paste-table-open tbody tr'));
+
+            rows.forEach(row => {
+                const id = row.getAttribute("data-id");
+                if (id && id.startsWith(searchValue)) {
+                    row.style.display = "";  // Show matching row
+                } else {
+                    row.style.display = "none";  // Hide non-matching row
+                }
+            });
+        });
+
+        function updateRowColorsAndSort() {
+            const rows = Array.from(document.querySelectorAll('#solder-paste-table-open tbody tr'));
+            const currentTime = new Date();
+
+            rows.forEach(row => {
+                const openusing = new Date(row.getAttribute('data-openusing'));
+                let timeDiff = (currentTime - openusing) / 60000; // Convert to minutes
+                let rowClass = 'default-color';
+                let statusText = '';
+                let priority = 3; // Default priority for sorting
+
+                if (timeDiff > 480) { // More than 8 hours
+                    rowClass = 'table-danger';
+                    statusText = 'Melebihi 8 jam';
+                    priority = 1; // Highest priority
+                } else if (timeDiff > 360) { // More than 6 hours
+                    rowClass = 'table-warning';
+                    statusText = 'Melebihi 6 jam';
+                    priority = 2;
+                } else {
+                    statusText = 'Open';
+                }
+
+                row.className = rowClass;
+                row.querySelector('.status').textContent = statusText;
+                row.setAttribute('data-priority', priority); // Set priority for sorting
+            });
+
+            const sortedRows = rows.sort((a, b) => {
+                return a.getAttribute('data-priority') - b.getAttribute('data-priority');
+            });
+
+            const tbody = document.querySelector('#solder-paste-table-open tbody');
+            tbody.innerHTML = ''; // Clear existing rows
+            sortedRows.forEach(row => tbody.appendChild(row)); // Append sorted rows
+        }
+
+        updateRowColorsAndSort();
+        setInterval(updateRowColorsAndSort, 30000); // Update every 30 seconds
+    });
 </script>
 
 <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        function fetchUpdatedData() {
+            fetch('<?= base_url("user/fetch_updated_solder_paste_exp") ?>')
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.querySelector('#solder-paste-table-expired tbody');
+                    tbody.innerHTML = ''; 
+
+                    if (data.length > 0) {
+                        data.forEach(entry => {
+                            const row = document.createElement('tr');
+                            row.setAttribute('datax-handover', entry.handover);
+                            row.setAttribute('data-id', entry.id); 
+
+                            row.innerHTML = `
+                                <td><b>${entry.id}</td>
+                                <td><b>${entry.lot_number}</td>
+                                <td><b>${entry.handover}</td>
+                                <td class="status"><b>Normal</td>
+                            `;
+
+                            tbody.appendChild(row);
+                        });
+                    } else {
+                        const noDataRow = document.createElement('tr');
+                        noDataRow.innerHTML = '<td colspan="5">No entries for today.</td>';
+                        tbody.appendChild(noDataRow);
+                    }
+                })
+                .catch(error => console.error('Error fetching updated data:', error));
+        }
+
+        document.getElementById('search-id').addEventListener('input', function () {
+            const searchValue = this.value.trim();
+            const rows = document.querySelectorAll('#solder-paste-table-expired tbody tr');
+
+            rows.forEach(row => {
+                const id = row.getAttribute('data-id').substring(0, 3);
+                if (id.startsWith(searchValue)) {
+                    row.style.display = ''; 
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+
+        fetchUpdatedData();
+        setInterval(fetchUpdatedData, 30000);
+    });
+</script>
+
+
+<!-- Fungsi lama yang menampilkan handover status normal
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        function updateRowColors() {
+            const rows = document.querySelectorAll('#solder-paste-table-expired tbody tr');
+            const currentTime = new Date();
+
+            rows.forEach(row => {
+                const handoverAttr = row.getAttribute('datax-handover');
+
+                let rowClass = 'default-color';
+                let statusText = 'Normal';
+
+                // if (handoverAttr) {
+                //     const handoverTime = new Date(handoverAttr);
+                //     const handoverDiff = (currentTime - handoverTime) / 60000; 
+
+                //     if (handoverDiff > 2880) { // aktual waktu 2880 menit = 48 jam (2 hari)
+                //         rowClass = 'table-danger';
+                //         statusText = 'Out Off Time';
+                //     }
+                // }
+
+                row.className = rowClass;
+                row.querySelector('.status').textContent = statusText;
+            });
+        }
+
+        updateRowColors();
+        setInterval(updateRowColors, 30000); 
+    });
+</script> -->
+
+<!-- Fungsi lama yang menampilkan handover dan openusing -->
+<!-- <script>
     document.addEventListener("DOMContentLoaded", function () {
         function updateRowColors() {
             const rows = document.querySelectorAll('#solder-paste-table-expired tbody tr');
@@ -269,7 +463,7 @@ Proses Produksi
         updateRowColors();
         setInterval(updateRowColors, 30000); 
     });
-</script>
+</script> -->
 
 <script>
     function saveTimestamp(column) {
@@ -505,7 +699,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 <style>
     .card-new {
-        max-height: 420px;
+        max-height: auto;
     }
 
     #search_results {

@@ -281,10 +281,12 @@ class User extends Controller
     public function processing_form_produksi()
     {
         $userModel = new UserModel(); 
+        $searchKey = $this->request->getGet('search_key'); 
         
         $today_entries_prod = $userModel->get_today_solder_paste_prod();
         $today_entries_open = $userModel->get_today_solder_paste_open();
-        $today_entries_exp = $userModel->get_today_solder_paste_exp();
+        $today_entries_exp = $userModel->get_today_solder_paste_exp('DESC', $searchKey);
+        
 
         $data = [
             'pageTitle' => 'Produksi Form',
@@ -551,6 +553,73 @@ class User extends Controller
         return redirect()->to('admnwarehouse/processing_form_warehouse');
     }
 
+    // fungsi controller pendukung untuk fungsi pop up mixing
+    // public function save_timewarehouse_search_key()
+    // {
+    //     $request = service('request');
+    //     $search_key = $request->getPost('search_key');
+    //     $column = $request->getPost('column');
+    //     date_default_timezone_set('Asia/Jakarta');
+
+    //     if ($search_key && $column) {
+    //         $userModel = new UserModel();
+    //         $search_key = $userModel->get_id_from_search_key($search_key);
+
+    //         if ($search_key !== false) {
+    //             $timestamp = date('Y-m-d H:i:s');
+    //             $valid = true;
+                
+    //             switch ($column) {
+    //                 case 'conditioning':
+    //                     if (!$userModel->get_incoming_timestamp($search_key)) {
+    //                         $valid = false;
+    //                         session()->setFlashdata('error', 'Tolong input data Incoming terlebih dahulu sebelum input data Conditioning.');
+    //                     } elseif ($userModel->get_conditioning_timestamp($search_key)) {
+    //                         $valid = false;
+    //                         session()->setFlashdata('error', 'Data Conditioning sudah diinput sebelumnya.');
+    //                     }
+    //                     break;
+    //                 case 'mixing':
+    //                     if (!$userModel->get_conditioning_timestamp($search_key)) {
+    //                         $valid = false;
+    //                         session()->setFlashdata('error', 'Tolong input data Conditioning terlebih dahulu sebelum input data Mixing.');
+    //                     } elseif ($userModel->get_mixing_timestamp($search_key)) {
+    //                         $valid = false;
+    //                         session()->setFlashdata('error', 'Data Mixing sudah diinput sebelumnya.');
+    //                     }
+    //                     break;
+    //                 case 'handover':
+    //                     if (!$userModel->get_mixing_timestamp($search_key)) {
+    //                         $valid = false;
+    //                         session()->setFlashdata('error', 'Tolong input data Mixing terlebih dahulu sebelum input data Handover.');
+    //                     } elseif ($userModel->get_handover_timestamp($search_key)) {
+    //                         $valid = false;
+    //                         session()->setFlashdata('error', 'Data Handover sudah diinput sebelumnya.');
+    //                     }
+    //                     break;
+    //                 default:
+    //                     break;
+    //             }
+
+    //             if ($valid) {
+    //                 $data = [$column => $timestamp];
+    //                 if ($userModel->update_processingsearch($search_key, $data)) {
+    //                     session()->setFlashdata('success', ucfirst($column) . ' berhasil untuk disimpan.');
+    //                 } else {
+    //                     session()->setFlashdata('error', 'Gagal menyimpan ' . $column . '.');
+    //                     logger('Gagal menyimpan ' . $column . ' untuk search_key ' . $search_key);
+    //                 }
+    //             }
+    //         } else {
+    //             session()->setFlashdata('error', 'Search Key tidak ditemukan.');
+    //         }
+    //     } else {
+    //         session()->setFlashdata('error', 'Harap isi semua field yang diperlukan.');
+    //     }
+
+    //     return redirect()->to('admnwarehouse/processing_form_warehouse');
+    // }
+
     public function save_timewarehouse_search_key()
     {
         $request = service('request');
@@ -577,12 +646,22 @@ class User extends Controller
                         }
                         break;
                     case 'mixing':
-                        if (!$userModel->get_conditioning_timestamp($search_key)) {
+                        $conditioningTimestamp = $userModel->get_conditioning_timestamp($search_key);
+                        if (!$conditioningTimestamp) {
                             $valid = false;
                             session()->setFlashdata('error', 'Tolong input data Conditioning terlebih dahulu sebelum input data Mixing.');
                         } elseif ($userModel->get_mixing_timestamp($search_key)) {
                             $valid = false;
                             session()->setFlashdata('error', 'Data Mixing sudah diinput sebelumnya.');
+                        } else {
+                            $conditioningTime = strtotime($conditioningTimestamp);
+                            $currentTime = time();
+                            $diffInMinutes = ($currentTime - $conditioningTime) / 60;
+    
+                            if ($diffInMinutes <= 120) {
+                                $valid = false;
+                                session()->setFlashdata('error', 'Waktu Conditioning belum melewati batas minimum 2 jam. Proses Mixing tidak dapat dilanjutkan.');
+                            }
                         }
                         break;
                     case 'handover':
@@ -1552,7 +1631,6 @@ class User extends Controller
             ]);
         }
     }
-    
 
     public function check_data_exists()
     {
@@ -1575,6 +1653,15 @@ class User extends Controller
             return $this->response->setStatusCode(500)->setJSON($response);
         }
     }
+
+    public function fetch_updated_solder_paste_exp()
+    {
+        $userModel = new UserModel(); 
+        $today_entries_exp = $userModel->get_today_solder_paste_exp();
+
+        return $this->response->setJSON($today_entries_exp);
+    }
+
 
 
 }
